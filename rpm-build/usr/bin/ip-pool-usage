@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Script to check the usage of ip pool.
+# Run on etcd host
+
+function EchoIp()
+{
+    data=$1
+    ip_str=$(echo $data|cut -d '/' -f 6)
+    #echo -n $ip_str
+    printf "%s     "  $ip_str
+}
+function EchoUsedIp()
+{
+    data=$1
+    ip_str=$(echo $data|cut -d '/' -f 7)
+    if [ -z $ip_str ];then
+        #printf '\n'
+        ip_str=$(echo $data|cut -d '/' -f 6):
+        hostname_cnt=$[hostname_cnt+1]
+    fi
+    #echo -n $ip_str
+    printf "%s     "  $ip_str
+}
+cnt=0
+hostname_cnt=0
+echo "=== Avaliable IP address ==="
+for data in $(etcdctl ls /skylark --recursive --sort|grep -i pool/)
+    do EchoIp $data
+    cnt=$[cnt+1]
+    if [ $[cnt%5] == 0 ];then
+        printf '\n'
+    fi
+done
+printf "Total: %d"$cnt
+echo;echo
+cnt=0
+echo "=== Assigned IP address ==="
+for data in $(etcdctl ls /skylark --recursive --sort|grep -i assigned/)
+    do EchoUsedIp $data
+    cnt=$[cnt+1]
+    if [ $[cnt%5] == 0 ];then
+        printf '\n'
+    fi
+done
+# remove the count for hostname
+cnt=$[cnt-hostname_cnt]
+printf "Total: %d"$cnt
+echo

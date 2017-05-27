@@ -1,0 +1,18 @@
+[Unit]
+Description=oam-docker-ipam
+After=network.target
+After=network-online.target
+After=docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/oam-docker-ipam/oam-docker-ipam.conf
+User=root
+# set GOMAXPROCS to number of processors
+ExecStart=/bin/bash -c "GOMAXPROCS=$(nproc) /usr/bin/oam-docker-ipam --debug=\"${IPAM_DEBUG}\" --cluster-store=\"${IPAM_CLUSTER_STORE}\" server"
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
