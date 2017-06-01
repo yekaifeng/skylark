@@ -131,7 +131,7 @@
 ## 版本依赖
 
 * RHEL/CentOS 7.2
-* docker-engine 1.11.2
+* docker-engine 1.12.0
 * etcd 大于 2.2.5
 
 ## 部署过程（MacVlan)
