@@ -27,6 +27,7 @@ import (
 
 const (
 	network_key_prefix = "/skylark/networks"
+	pod_key_prefix = "/skylark/pods"
 )
 
 var hostname string
@@ -73,6 +74,11 @@ func AllocateIPRange(ip_start, ip_end string) []string {
 }
 
 func ReleaseIP(ip_net, ip string) error {
+	value, _ := db.GetKey(filepath.Join(network_key_prefix, ip_net, "assigned", hostname, ip))
+	if value != nil {
+		DeleteEndpointFromStore(value)
+	}
+
 	err := db.DeleteKey(filepath.Join(network_key_prefix, ip_net, "assigned", hostname, ip))
 	if err != nil {
 		log.Infof("Skip Release IP %s", ip)
@@ -517,4 +523,36 @@ func get_host_veth_num(pid int, device string) string {
 	ifnum := strings.TrimLeft(ethif, device+"@if")
 	log.Debug("Got veth number: ", ifnum)
 	return ifnum
+}
+
+func SaveEndpointToStore(infracontainerid string, ip_net string, ip string) error{
+	//update container id to ip key
+	db.SetKey(filepath.Join(network_key_prefix, ip_net, "assigned", hostname, ip), infracontainerid)
+	log.Infof("Complete set value for %s", ip)
+
+	//save pod endpoint info
+	err := db.SetKey(filepath.Join(pod_key_prefix, infracontainerid), ip)
+	if err != nil {
+		log.Errorf("error saving endpoint %s", infracontainerid)
+		return err
+	}
+	return nil
+}
+
+func DeleteEndpointFromStore(infracontainerid string) error{
+	err := db.DeleteKey(filepath.Join(pod_key_prefix, infracontainerid))
+	if err != nil {
+		log.Errorf("error deleting endpoint %s", infracontainerid)
+		return err
+	}
+	return nil
+}
+
+func GetEndpointFromStore(infracontainerid string) (string, bool) {
+	ip, err := db.GetKey(filepath.Join(pod_key_prefix, infracontainerid))
+	if err != nil {
+		log.Infof("endpoint not found %s", infracontainerid)
+		return nil, false
+	}
+	return ip, true
 }

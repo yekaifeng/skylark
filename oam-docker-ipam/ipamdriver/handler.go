@@ -5,10 +5,11 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/go-plugins-helpers/ipam"
+	//"github.com/docker/go-plugins-helpers/ipam"
 	netlabel "github.com/docker/libnetwork/netlabel"
 
 	"oam-docker-ipam/util"
+	ipam "oam-docker-ipam/skylarkcni/ipamapi"
 )
 
 type MyIPAMHandler struct {
@@ -63,6 +64,15 @@ func (iph *MyIPAMHandler) RequestAddress(request *ipam.RequestAddressRequest) (r
 		return &ipam.RequestAddressResponse{fmt.Sprintf("%s/%s", ip, config.Mask), nil}, nil
 	}
 	ip, err = AllocateIP(ip_net, ip)
+	if err != nil {
+		if value, ok := request.Options["InfraContainerid"]; ok {
+			//save the infracontainerid and ip mapping
+			err = SaveEndpointToStore(value, ip_net, ip)
+			if err != nil {
+				log.Errorf("error saving endpoint to store %s", value)
+			}
+		}
+	}
 	return &ipam.RequestAddressResponse{fmt.Sprintf("%s/%s", ip, config.Mask), nil}, err
 }
 
@@ -75,4 +85,21 @@ func (iph *MyIPAMHandler) ReleaseAddress(request *ipam.ReleaseAddressRequest) (e
 	log.Infof("ReleaseAddress %s", request_json)
 	err = ReleaseIP(request.PoolID, request.Address)
 	return err
+}
+
+func (iph *MyIPAMHandler) GetAddress(request *ipam.GetAddressRequest) (response *ipam.GetAddressResponse, err error) {
+	var request_json []byte = nil
+	request_json, err = json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	log.Infof("GetAddress %s", request_json)
+        containerid := request.ContainerID
+
+	ip, err := GetEndpointFromStore(containerid)
+	if err != nil {
+		log.Errorf("error get endpoint from store %s. %v", containerid, err)
+	}
+
+	return &ipam.GetAddressResponse{fmt.Sprintf("%s", ip)}, err
 }
