@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	//"errors"
 	"fmt"
 	"net"
 	"os"
@@ -14,9 +12,9 @@ import (
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/containernetworking/cni/pkg/types/current"
 	//"github.com/containernetworking/cni/pkg/version"
-	"github.com/containernetworking/plugins/pkg/ip"
+	"github.com/containernetworking/cni/pkg/ip"
 	//"github.com/containernetworking/plugins/pkg/ipam"
-	"github.com/containernetworking/plugins/pkg/ns"
+	"github.com/containernetworking/cni/pkg/ns"
 	//"github.com/containernetworking/plugins/pkg/utils"
 	"github.com/vishvananda/netlink"
 
