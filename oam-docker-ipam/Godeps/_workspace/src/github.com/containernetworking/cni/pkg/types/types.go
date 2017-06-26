@@ -65,6 +65,8 @@ type NetConf struct {
 	Capabilities map[string]bool `json:"capabilities,omitempty"`
 	IPAM         struct {
 		Type string `json:"type,omitempty"`
+		Subnet string `json:"subnet,omitempty"`
+		Gateway string `json:"gateway,omitempty"`
 	} `json:"ipam,omitempty"`
 	DNS DNS `json:"dns"`
 }
