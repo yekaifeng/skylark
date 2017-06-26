@@ -15,7 +15,8 @@ import (
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/go-plugins-helpers/ipam"
+	//"github.com/docker/go-plugins-helpers/ipam"
+	ipam "oam-docker-ipam/skylarkcni/ipamapi"
 	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/docker/engine-api/client"
@@ -552,7 +553,7 @@ func GetEndpointFromStore(infracontainerid string) (string, bool) {
 	ip, err := db.GetKey(filepath.Join(pod_key_prefix, infracontainerid))
 	if err != nil {
 		log.Infof("endpoint not found %s", infracontainerid)
-		return nil, false
+		return "", false
 	}
 	return ip, true
 }
