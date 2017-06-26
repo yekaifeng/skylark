@@ -76,7 +76,7 @@ func AllocateIPRange(ip_start, ip_end string) []string {
 
 func ReleaseIP(ip_net, ip string) error {
 	value, _ := db.GetKey(filepath.Join(network_key_prefix, ip_net, "assigned", hostname, ip))
-	if value != nil {
+	if value != "" {
 		DeleteEndpointFromStore(value)
 	}
 

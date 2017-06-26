@@ -10,7 +10,7 @@ import (
 
 	"oam-docker-ipam/util"
 	ipam "oam-docker-ipam/skylarkcni/ipamapi"
-	"github.com/pkg/errors"
+
 )
 
 type MyIPAMHandler struct {
@@ -100,7 +100,6 @@ func (iph *MyIPAMHandler) GetAddress(request *ipam.GetAddressRequest) (response 
 	ip, found := GetEndpointFromStore(containerid)
 	if found == false {
 		log.Errorf("error get endpoint from store %s", containerid)
-		err = errors.New("error get endpoint from store")
 	}
 
 	return &ipam.GetAddressResponse{fmt.Sprintf("%s", ip)}, err
