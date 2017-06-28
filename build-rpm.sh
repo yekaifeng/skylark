@@ -30,6 +30,10 @@ sed -i "s/_version_/$version/g" tmp.spec
 rpmbuild -bb tmp.spec
 rm -f tmp.spec
 
+if [ ! -z ./rpms ]; then
+  mkdir -p rpms
+fi
+
 cp -fr ~/rpmbuild/RPMS/x86_64/oam-docker-ipam-$version* ./rpms
 
 echo "rpm build completed!"
