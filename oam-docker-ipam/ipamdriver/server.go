@@ -408,30 +408,26 @@ func handleChannelEvent(byteRsps chan [2][]byte) {
 		}
 
 		//if both IN and OUT are 0, then no limit is set
-		if limit["IN"] !=0 && limit["OUT"] !=0 {
-			//get corresponding container who owns the target_ip
-			containers, _ := ListContainers("unix:///var/run/docker.sock")
-			for _, container := range containers {
-				// get network setting in each container
-				networks := container.NetworkSettings.Networks
-				for _, v := range networks {
-					if v.IPAddress == target_ip {
-						containerJson, _ := InspectContainer("unix:///var/run/docker.sock", container.ID)
 
-						//get pid of target container
-						pid := containerJson.State.Pid
+		//get corresponding container who owns the target_ip
+		containers, _ := ListContainers("unix:///var/run/docker.sock")
+		for _, container := range containers {
+			// get network setting in each container
+			networks := container.NetworkSettings.Networks
+			for _, v := range networks {
+				if v.IPAddress == target_ip {
+					containerJson, _ := InspectContainer("unix:///var/run/docker.sock", container.ID)
 
-						//set flow limit
-						go set_flow_limit(pid, limit)
-						log.Debug(pid, ":", limit)
-					}
+					//get pid of target container
+					pid := containerJson.State.Pid
+
+					//set flow limit
+					go set_flow_limit(pid, limit)
+					log.Debug(pid, ":", limit)
 				}
 			}
-		} else {
-			log.Debug("No flow limit is required")
-			continue
 		}
-
+		log.Debug("No flow limit is required")
 	}
 }
 
@@ -467,14 +463,25 @@ func set_flow_limit(pid int, limit map[string]int) {
 		host_veth_dev := trim_right
 		log.Debug("Target host device: ", host_veth_dev)
 
-		//set the flow limit with wondershaper
-		cmd = exec.Command("/sbin/wondershaper", host_veth_dev,
-			strconv.Itoa(out), strconv.Itoa(in))
-		log.Debug(cmd)
-		output, err = cmd.CombinedOutput()
-		if err != nil {
-			log.Error(output)
-			return
+		if in==0 && out==0 {
+			//clear the flow limit with wondershaper
+			cmd = exec.Command("/sbin/wondershaper", "clear", host_veth_dev)
+			log.Debug(cmd)
+			output, err = cmd.CombinedOutput()
+			if err != nil {
+				log.Error(output)
+				return
+			}
+		} else {
+			//set the flow limit with wondershaper
+			cmd = exec.Command("/sbin/wondershaper", host_veth_dev,
+				strconv.Itoa(out), strconv.Itoa(in))
+			log.Debug(cmd)
+			output, err = cmd.CombinedOutput()
+			if err != nil {
+				log.Error(output)
+				return
+			}
 		}
 
 		//show the flow limit result
